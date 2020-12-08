@@ -13,7 +13,7 @@ else:
     print("Ok, I'll quiz you anyway")
 
 # Ask first question
-first_question = int(input("What is 2*2?: "))
+first_question = int(input("What is 2*2?: "))       # Breaks when a string is put in eg. four
 if first_question == 4:
     total += 1
     print(f"Nice, your score is {total}/5")
@@ -56,9 +56,11 @@ else:
     print(f"Wrong, your final score is {total}/5")
 
 # Closing line
+score_percentage = (total/5)*100
 if total == 5:
-    print("Aced!")
+    print("Aced! 100%")
 elif total == 0:
     print("You got it next time")
 else:
-    print("Well done!")
+    print(f"Well done! {score_percentage}%")
+
