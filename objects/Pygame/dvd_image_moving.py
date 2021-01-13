@@ -20,6 +20,26 @@ WIDTH = 800
 HEIGHT = 600
 TITLE = "DVD Screensaver"
 
+class Rectangle:
+    def __init__(self, colour=WHITE):
+        self.width, self.height = (150, 80)
+        self.x, self.y = (WIDTH / 2, HEIGHT / 2)
+
+        self.colour = colour
+
+        self.vel_x = 3
+
+    def draw(self, screen):
+        pygame.draw.rect(
+            screen,
+            self.colour,
+            [
+                self.x,
+                self.y,
+                self.width,
+                self.height
+            ]
+        )
 
 def main():
     pygame.init()
@@ -33,6 +53,8 @@ def main():
     done = False
     clock = pygame.time.Clock()
 
+    block_one = Rectangle((0, 255, 0))
+
     # ----- MAIN LOOP
     while not done:
         # -- Event Handler
@@ -44,6 +66,7 @@ def main():
 
         # ----- DRAW
         screen.fill(BLACK)
+        block_one.draw(screen)
 
         # ----- UPDATE
         pygame.display.flip()
