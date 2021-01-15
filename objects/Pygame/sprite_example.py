@@ -43,6 +43,12 @@ class Player(pygame.sprite.Sprite):
         """Changes the position of the player based on the mouse's position"""
         self.rect.center = pygame.mouse.get_pos()
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+
+
 
 def main():
     pygame.init()
