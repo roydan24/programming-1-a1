@@ -5,6 +5,7 @@
 #    - create new sprites IN the main loop (bullets)
 #    - using pygame.mouse a little more comfortably
 
+import random
 import pygame
 
 # ----- CONSTANTS
@@ -13,15 +14,17 @@ WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 SKY_BLUE = (95, 165, 228)
 WIDTH = 720
-HEIGHT = 1280
+HEIGHT = 1000
 TITLE = "SHMUP"
+NUM_ROWS = 8
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
 
         self.image = pygame.image.load("./images/galaga_ship.png")
-        # Scaling the image down by 0.5x
+        # scaling the image down .5x
         self.image = pygame.transform.scale(self.image, (64, 64))
 
         self.rect = self.image.get_rect()
@@ -29,6 +32,9 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         """Move the player with the mouse"""
         self.rect.center = pygame.mouse.get_pos()
+
+        if self.rect.top < HEIGHT - 100:
+            self.rect.top = HEIGHT -100
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, y_coord):
@@ -46,24 +52,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.centerx = WIDTH / 2
         self.rect.centery = y_coord
 
-        self.x_vel = 3
-
-class Bullet(pygame.sprite.Sprite):
-    def __init__(self, coords):
-        super().__init__()
-
-        self.image = pygame.image.load("./images/bullet.png")
-        # Scale to 22x36px
-        self.image = pygame.transform.scale(self.image, (22, 36))
-
-        self.rect = self.image.get_rect()
-        # Start the bullet at coords
-        self.rect.centerx, self.rect.bottom = coords
-
-        self.y_vel = -3
-
-
-
+        self.x_vel = random.choice([3, 6])
 
     def update(self):
         """Move the enemy side-to-side"""
@@ -72,6 +61,29 @@ class Bullet(pygame.sprite.Sprite):
         # Keep enemy in the screen
         if self.rect.right > WIDTH or self.rect.left < 0:
             self.x_vel *= -1
+
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, coords):
+        """
+        Arguments:
+            coords - tuple of x,y
+        """
+        super().__init__()
+
+        self.image = pygame.image.load("./images/bullet.png")
+        # scale the image to 22x36px
+        self.image = pygame.transform.scale(self.image, (22,36))
+
+        self.rect = self.image.get_rect()
+        # initial location at coords
+        self.rect.centerx, self.rect.bottom = coords
+
+        self.y_vel = -3
+
+    def update(self):
+        self.rect.y += self.y_vel
+
 
 
 def main():
@@ -89,11 +101,14 @@ def main():
     # Sprite Groups
     all_sprites = pygame.sprite.RenderUpdates()
     enemy_sprites = pygame.sprite.Group()
+    player_bullet_sprites = pygame.sprite.Group()
 
     #  --- enemies
-    enemy = Enemy(100)
-    all_sprites.add(enemy)
-    enemy_sprites.add(enemy)
+    for i in range(NUM_ROWS):
+        enemy = Enemy(100+i*30)
+        enemy.rect.x = enemy.rect.x - random.choice([-10, 10])
+        all_sprites.add(enemy)
+        enemy = Enemy(100)
 
     #  --- player
     player = Player()
@@ -105,15 +120,35 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 done = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if len(player_bullet_sprites) < 3:
+                    # create a bullet
+                    bullet = Bullet(player.rect.midtop)
+                    all_sprites.add(bullet)
+                    player_bullet_sprites.add(bullet)
 
         # ----- LOGIC
         all_sprites.update()
 
+        # check if every bullet has collided with enemy
+        for bullet in player_bullet_sprites:
+            # Kill if off screen
+            if bullet.rect.bottom < 0:
+                bullet.kill()
+
+            # Enemy collision
+            enemies_hit_group = pygame.sprite.spritecollide(bullet, enemy_sprites, True)
+            if len(enemies_hit_group) > 0:
+                bullet.kill()
+
+
         # ----- DRAW
         screen.fill(BLACK)
+        # draw and return just the dirty rectangles
         dirty_rectangles = all_sprites.draw(screen)
 
         # ----- UPDATE
+        # update only dirty rectangles
         pygame.display.update(dirty_rectangles)
         clock.tick(60)
 
